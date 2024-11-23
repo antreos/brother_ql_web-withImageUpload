@@ -198,6 +198,53 @@ function print() {
   });
 }
 
+function handleImageUpload(e) {
+  const file = e.target.files[0];
+  if (file) {
+    const reader = new FileReader();
+    reader.onload = function(e) {
+      $('#imagePreview').attr('src', e.target.result).show();
+      $('#uploadButton').show();
+    }
+    reader.readAsDataURL(file);
+  }
+}
+
+function uploadImage() {
+  const file = $('#imageUpload')[0].files[0];
+  if (!file) return;
+
+  const formData = new FormData();
+  formData.append('image', file);
+  formData.append('label_size', $('#labelSize').val());
+  formData.append('orientation', $('input[name=orientation]:checked').val());
+
+  $('#uploadButton').prop('disabled', true);
+  $('#statusPanel').html('<div class="alert alert-info">Uploading and printing image...</div>');
+
+  $.ajax({
+    url: '/api/print/image',
+    type: 'POST',
+    data: formData,
+    processData: false,
+    contentType: false,
+    success: function(response) {
+      if (response.success) {
+        $('#statusPanel').html('<div class="alert alert-success">Image printed successfully!</div>');
+      } else {
+        $('#statusPanel').html('<div class="alert alert-danger">Error: ' + response.error + '</div>');
+      }
+      $('#uploadButton').prop('disabled', false);
+    },
+    error: function() {
+      $('#statusPanel').html('<div class="alert alert-danger">Upload failed</div>');
+      $('#uploadButton').prop('disabled', false);
+    }
+  });
+}
+
+$('#imageUpload').change(handleImageUpload);
+
 preview()
 
 {% endblock %}
