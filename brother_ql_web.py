@@ -217,7 +217,41 @@ def print_text():
     return_dict['success'] = True
     if DEBUG: return_dict['data'] = str(qlr.data)
     return return_dict
+    
+@post('/api/print/image')
+def print_image():
+    return_dict = {'success': False}
+    
+    try:
+        upload = request.files.get('image')
+        if not upload:
+            return_dict['error'] = 'No image uploaded'
+            return return_dict
+            
+        # Bild verarbeiten
+        im = Image.open(BytesIO(upload.file.read()))
+        
+        # Label Größe und Orientierung aus Form holen
+        label_size = request.forms.get('label_size', "62") 
+        orientation = request.forms.get('orientation', 'standard')
+        
+        # Drucken wie bei print_text()
+        rotate = 0 if orientation == 'standard' else 90
+        
+        qlr = BrotherQLRaster(CONFIG['PRINTER']['MODEL'])
+        create_label(qlr, im, label_size, threshold=70, cut=True, rotate=rotate)
 
+        if not DEBUG:
+            be = BACKEND_CLASS(CONFIG['PRINTER']['PRINTER'])
+            be.write(qlr.data)
+            be.dispose()
+            
+        return_dict['success'] = True
+        
+    except Exception as e:
+        return_dict['error'] = str(e)
+        
+    return return_dict
 def main():
     global DEBUG, FONTS, BACKEND_CLASS, CONFIG
     parser = argparse.ArgumentParser(description=__doc__)
