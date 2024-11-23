@@ -1,6 +1,7 @@
-## brother\_ql\_web
+## brother\_ql\_web-withImageUpload
 
 This is a web service to print labels on Brother QL label printers.
+Addition to the software in this fork: directly upload snake-label.de converted Images to print via brother-ql-web. 
 
 You need Python 3 for this software to work.
 
